@@ -53,9 +53,6 @@ class Order(models.Model):
     ordered_date = models.DateTimeField(blank=True, null=True)
     timestamp = models.DateTimeField(default=timezone.now)
 
-    class Meta:
-        ordering = ['-timestamp']
-
     '''
     1. product added to cart
     2. Update profile (Address

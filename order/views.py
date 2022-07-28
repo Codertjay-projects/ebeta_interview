@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from order.models import OrderProduct, Order
-from order.serializers import CartActionSerializer, OrderSerializer, OrderStateSerializer, OrderTestSerializer
+from order.serializers import CartActionSerializer, OrderStateSerializer, OrderSerializer
 from product.models import Product
 
 
@@ -20,7 +20,7 @@ class UserOrderAPIView(APIView):
         order = Order.objects.filter(user=request.user, ordered=False).first()
         if not order:
             order = Order.objects.create(user=request.user, ordered=False)
-        return Response({'message': 'User Current Order', 'data': OrderTestSerializer(instance=order).data}, status=200)
+        return Response({'message': 'User Current Order', 'data': OrderSerializer(instance=order).data}, status=200)
 
 
 class UserOrderHistory(ListAPIView):
@@ -65,14 +65,14 @@ class AddOrRemoveProductFromCartAPIView(APIView):
             order_product.save()
             order.save()
             print('order')
-            return Response({'message': 'Product quantity updated', 'data': OrderTestSerializer(instance=order).data})
+            return Response({'message': 'Product quantity updated', 'data': OrderSerializer(instance=order).data})
         else:
             if action == 'add':
                 order.products.add(order_product)
                 order_product.quantity = 1
                 order_product.save()
             return Response(
-                {'message': 'Product was added to cart', 'data': OrderTestSerializer(instance=order).data}, )
+                {'message': 'Product was added to cart', 'data': OrderSerializer(instance=order).data}, )
 
 
 class CheckoutAPIView(APIView):
