@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from order.models import OrderProduct, Order
-from order.serializers import CartActionSerializer, OrderSerializer, OrderStateSerializer
+from order.serializers import CartActionSerializer, OrderSerializer, OrderStateSerializer, OrderTestSerializer
 from product.models import Product
 
 
@@ -17,8 +17,10 @@ class UserOrderAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        order = Order.objects.get_or_create(user=request.user, ordered=False)
-        return Response({'message': 'User Current Order', 'data': OrderSerializer(order).data}, status=200)
+        order = Order.objects.filter(user=request.user, ordered=False).first()
+        if not order:
+            order = Order.objects.create(user=request.user, ordered=False)
+        return Response({'message': 'User Current Order', 'data': OrderTestSerializer(instance=order).data}, status=200)
 
 
 class UserOrderHistory(ListAPIView):
@@ -50,7 +52,6 @@ class AddOrRemoveProductFromCartAPIView(APIView):
         if not order_product:
             order_product = OrderProduct.objects.create(user=request.user, ordered=False, product=product)
         order, created = Order.objects.get_or_create(user=request.user, ordered=False)
-        print(order)
 
         if order.products.filter(product__slug=product.slug).exists():
             if action == 'add':
@@ -64,13 +65,14 @@ class AddOrRemoveProductFromCartAPIView(APIView):
             order_product.save()
             order.save()
             print('order')
-            return Response({'message': 'Product quantity updated', 'data': OrderSerializer(instance=order).data})
+            return Response({'message': 'Product quantity updated', 'data': OrderTestSerializer(instance=order).data})
         else:
             if action == 'add':
                 order.products.add(order_product)
                 order_product.quantity = 1
                 order_product.save()
-            return Response({'message': 'Product was added to cart', 'data': OrderSerializer(instance=order).data}, )
+            return Response(
+                {'message': 'Product was added to cart', 'data': OrderTestSerializer(instance=order).data}, )
 
 
 class CheckoutAPIView(APIView):

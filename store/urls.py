@@ -7,5 +7,5 @@ router = DefaultRouter()
 router.register(r'', StoreViewSet, basename='store')
 urlpatterns = router.urls
 urlpatterns += [
-    path('store_products/',StoreProducts.as_view(),name='store_products')
+    path('store_products/<str:store_slug>/',StoreProducts.as_view(),name='store_products')
 ]

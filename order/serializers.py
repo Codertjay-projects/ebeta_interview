@@ -19,6 +19,19 @@ class OrderProductSerializer(serializers.ModelSerializer):
         ]
 
 
+class OrderTestSerializer(serializers.ModelSerializer):
+    user = UserSerializer(required=True)
+    products = OrderProductSerializer(many=True, required=True)
+
+    class Meta:
+        model = Order
+        fields = [
+            'user',
+            'ordered',
+            'products',
+        ]
+
+
 class OrderSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     products = OrderProductSerializer(many=True, read_only=True, required=False)

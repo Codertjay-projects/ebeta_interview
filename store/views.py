@@ -25,4 +25,4 @@ class StoreProducts(APIView):
             return Response({'message': 'Store does not exist'}, status=200)
         return Response(
             {'message': 'Store products',
-             'data': ProductSerializer(store.product_set.all(), many=True)}, status=200)
+             'data': ProductSerializer(store.product_set.all(), many=True).data}, status=200)
