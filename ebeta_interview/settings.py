@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
 
     # local apps
-    'order',
+    'orders',
     'store',
     'user',
     'product'

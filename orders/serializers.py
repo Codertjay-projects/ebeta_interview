@@ -1,41 +1,54 @@
 from rest_framework import serializers
 
-from order.models import Order, OrderProduct, OrderState
+from orders.models import Order, OrderProduct, OrderState
 from product.serializers import ProductSerializer
 from user.serializers import UserSerializer
 
 
 class OrderProductSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
     product = ProductSerializer(read_only=True)
 
     class Meta:
         model = OrderProduct
         fields = [
-            'user',
             'ordered',
             'product',
             'quantity',
         ]
 
 
+# class OrderSerializer(serializers.ModelSerializer):
+#     user = UserSerializer(read_only=True)
+#     order_products = OrderProductSerializer(many=True, read_only=True, required=False)
+#     order_state = serializers.ChoiceField(required=False, allow_blank=True, choices=OrderState)
+#
+#     class Meta:
+#         model = Order
+#
+#         fields = [
+#             'user',
+#             'order_products',
+#             'start_date',
+#             'ref_code',
+#             'ordered',
+#             'order_products',
+#             'order_state',
+#             'ordered_date',
+#         ]
+
+
 class OrderSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
-    products = OrderProductSerializer(many=True, read_only=True, required=False)
-    order_state = serializers.ChoiceField(required=False, allow_blank=True, choices=OrderState)
+    order_products = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
-        fields = [
-            'user',
-            'products',
-            'start_date',
-            'ref_code',
-            'ordered',
-            'products',
-            'order_state',
-            'ordered_date',
-        ]
+        fields = (
+            'id',
+            'order_products',
+        )
+
+    def get_order_products(self):
+
 
 
 CartActions = (

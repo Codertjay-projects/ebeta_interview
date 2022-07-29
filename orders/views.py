@@ -8,8 +8,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from order.models import OrderProduct, Order
-from order.serializers import CartActionSerializer, OrderStateSerializer, OrderSerializer
+from orders.models import OrderProduct, Order
+from orders.serializers import CartActionSerializer, OrderStateSerializer, OrderSerializer
 from product.models import Product
 
 
@@ -18,8 +18,10 @@ class UserOrderAPIView(APIView):
 
     def get(self, request):
         order = Order.objects.filter(user=request.user, ordered=False).first()
+        print(order)
         if not order:
             order = Order.objects.create(user=request.user, ordered=False)
+        print('the order',order)
         return Response({'message': 'User Current Order', 'data': OrderSerializer(instance=order).data}, status=200)
 
 
@@ -53,12 +55,12 @@ class AddOrRemoveProductFromCartAPIView(APIView):
             order_product = OrderProduct.objects.create(user=request.user, ordered=False, product=product)
         order, created = Order.objects.get_or_create(user=request.user, ordered=False)
 
-        if order.products.filter(product__slug=product.slug).exists():
+        if order.order_products.filter(product__slug=product.slug).exists():
             if action == 'add':
                 order_product.quantity += 1
             elif action == 'remove':
                 if order_product.quantity <= 1:
-                    order.products.remove(order_product)
+                    order.order_products.remove(order_product)
                     order_product.delete()
                 else:
                     order_product.quantity -= 1
@@ -68,7 +70,7 @@ class AddOrRemoveProductFromCartAPIView(APIView):
             return Response({'message': 'Product quantity updated', 'data': OrderSerializer(instance=order).data})
         else:
             if action == 'add':
-                order.products.add(order_product)
+                order.order_products.add(order_product)
                 order_product.quantity = 1
                 order_product.save()
             return Response(
@@ -84,7 +86,7 @@ class CheckoutAPIView(APIView):
             return Response({'message': 'Please create and order by adding product to your cart'}, status=404)
         if order.get_total <= 0:
             return Response({'Message': 'You currently dont have product in your cart'}, status=400)
-        order_products = order.products.all()
+        order_products = order.order_products.all()
         order_products.update(ordered=True)
         for product in order_products:
             product.save()
@@ -92,7 +94,7 @@ class CheckoutAPIView(APIView):
         order.ordered_date = timezone.now()
         order.ref_code = ''.join(random.choices(string.ascii_lowercase + string.digits, k=20))
         order.save()
-        return Response({'message': 'Successfully checkout', 'data': OrderSerializer(order).data}, status=200)
+        return Response({'message': 'Successfully checkout', 'data': OrderSerializer(instance=order).data}, status=200)
 
 
 class UpdateOrderState(APIView):
@@ -107,4 +109,4 @@ class UpdateOrderState(APIView):
             return Response({'message': 'An active order with this ref code doesnt exist '}, status=404)
         order.order_state = serializer.data.get('order_state')
         return Response({'message': 'Order was successfully updated',
-                         'data': OrderSerializer(order).data}, status=200)
+                         'data': OrderSerializer(instance=order).data}, status=200)

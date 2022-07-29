@@ -1,6 +1,6 @@
 from django.urls import path
 
-from order.views import AddOrRemoveProductFromCartAPIView, CheckoutAPIView, UserOrderAPIView, UserOrderHistory, \
+from orders.views import AddOrRemoveProductFromCartAPIView, CheckoutAPIView, UserOrderAPIView, UserOrderHistory, \
     UpdateOrderState
 
 urlpatterns = [

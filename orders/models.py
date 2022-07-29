@@ -45,7 +45,7 @@ OrderState = (
 class Order(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL,
                              on_delete=models.CASCADE)
-    products = models.ManyToManyField(OrderProduct, blank=True)
+    order_products = models.ManyToManyField(OrderProduct, blank=True)
     start_date = models.DateTimeField(auto_now_add=True)
     ref_code = models.CharField(max_length=250, blank=True, null=True)
     ordered = models.BooleanField(default=False)
@@ -68,13 +68,13 @@ class Order(models.Model):
     @property
     def get_total(self):
         total = 0
-        for order_product in self.products.all():
+        for order_product in self.order_products.all():
             total += order_product.get_final_price
         return total
 
     @property
     def get_total_product_count(self):
         total = 0
-        for order_product in self.products.all():
+        for order_product in self.order_products.all():
             total += order_product.quantity
         return total

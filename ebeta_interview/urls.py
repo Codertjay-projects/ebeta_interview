@@ -7,7 +7,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/stores/', include('store.urls')),
     path('api/v1/products/', include('product.urls')),
-    path('api/v1/order/', include('order.urls')),
+    path('api/v1/order/', include('orders.urls')),
 ]
 
 authentication_url_patterns = [
