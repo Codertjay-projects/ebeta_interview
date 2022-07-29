@@ -1,0 +1,1 @@
+web: gunicorn ebeta_interview.wsgi --log-file -
