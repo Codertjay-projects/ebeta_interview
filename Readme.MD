@@ -6,7 +6,7 @@ The goal of this project is to provide minimalistic django project template that
 
 Template is written with django 1.11 and python 3 in mind.
 
-![Default Home View](__screenshots/home.png?raw=true "Title")
+vIEW DOCS https://documenter.getpostman.com/view/11282359/UzXPwwFe
 
 ### Main features
 
