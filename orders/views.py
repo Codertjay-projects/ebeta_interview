@@ -3,8 +3,8 @@ import string
 
 from django.db.models import Q
 from django.utils import timezone
-from rest_framework.generics import ListAPIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import ListAPIView, RetrieveDestroyAPIView
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -21,7 +21,7 @@ class UserOrderAPIView(APIView):
         print(order)
         if not order:
             order = Order.objects.create(user=request.user, ordered=False)
-        print('the order',order)
+        print('the order', order)
         return Response({'message': 'User Current Order', 'data': OrderSerializer(instance=order).data}, status=200)
 
 
@@ -31,8 +31,6 @@ class UserOrderHistory(ListAPIView):
 
     def get_queryset(self):
         return Order.objects.filter(
-            Q(order_state='CANCELED') |
-            Q(order_state='DELIVERED') &
             Q(ordered=True) &
             Q(user=self.request.user)
         ).distinct()
@@ -56,9 +54,9 @@ class AddOrRemoveProductFromCartAPIView(APIView):
         order, created = Order.objects.get_or_create(user=request.user, ordered=False)
 
         if order.order_products.filter(product__slug=product.slug).exists():
-            if action == 'add':
+            if action == 'ADD':
                 order_product.quantity += 1
-            elif action == 'remove':
+            elif action == 'REMOVE':
                 if order_product.quantity <= 1:
                     order.order_products.remove(order_product)
                     order_product.delete()
@@ -69,10 +67,12 @@ class AddOrRemoveProductFromCartAPIView(APIView):
             print('order')
             return Response({'message': 'Product quantity updated', 'data': OrderSerializer(instance=order).data})
         else:
-            if action == 'add':
+            if action == 'ADD':
+                print(order_product)
                 order.order_products.add(order_product)
                 order_product.quantity = 1
                 order_product.save()
+                order.save()
             return Response(
                 {'message': 'Product was added to cart', 'data': OrderSerializer(instance=order).data}, )
 
@@ -80,7 +80,7 @@ class AddOrRemoveProductFromCartAPIView(APIView):
 class CheckoutAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self):
+    def post(self, request):
         order = Order.objects.filter(user=self.request.user, ordered=False).first()
         if not order:
             return Response({'message': 'Please create and order by adding product to your cart'}, status=404)
@@ -101,12 +101,42 @@ class UpdateOrderState(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, **kwargs):
-        order_ref = kwargs.get('order_ref')
+        ref_code = kwargs.get('ref_code')
         serializer = OrderStateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        order = Order.objects.filter(order_ref=order_ref, ordered=True, user=request.user).first()
+        order = Order.objects.filter(ref_code=ref_code, ordered=True, user=request.user).first()
         if not order:
             return Response({'message': 'An active order with this ref code doesnt exist '}, status=404)
         order.order_state = serializer.data.get('order_state')
+        order.save()
+        return Response({'message': 'Order was successfully updated',
+                         'data': OrderSerializer(instance=order).data}, status=200)
+
+
+class AdminListOrdersAPIView(ListAPIView):
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    queryset = Order.objects.filter(ordered=True)
+    serializer_class = OrderSerializer
+
+
+class AdminRetrieveDestroyAPIView(RetrieveDestroyAPIView):
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    queryset = Order.objects.filter(ordered=True)
+    serializer_class = OrderSerializer
+    lookup_field = 'ref_code'
+
+
+class AdminUpdateOrderState(APIView):
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def post(self, request, **kwargs):
+        ref_code = kwargs.get('ref_code')
+        serializer = OrderStateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        order = Order.objects.filter(ref_code=ref_code, ordered=True).first()
+        if not order:
+            return Response({'message': 'An active order with this ref code doesnt exist '}, status=404)
+        order.order_state = serializer.data.get('order_state')
+        order.save()
         return Response({'message': 'Order was successfully updated',
                          'data': OrderSerializer(instance=order).data}, status=200)

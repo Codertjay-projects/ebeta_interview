@@ -38,23 +38,34 @@ class OrderProductSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    order_products = serializers.SerializerMethodField()
+    user = serializers.SerializerMethodField(read_only=True)
+    order_products = OrderProductSerializer(many=True, read_only=True, required=False)
+    order_state = serializers.ChoiceField(required=False, allow_blank=True, choices=OrderState)
 
     class Meta:
         model = Order
         fields = (
-            'id',
+            'user',
             'order_products',
+            'start_date',
+            'ref_code',
+            'ordered',
+            'order_products',
+            'order_state',
+            'ordered_date',
         )
 
-    def get_order_products(self):
-
+    def get_user(self, obj):
+        print('obj.user', obj.user)
+        serializer = UserSerializer(obj.user)
+        return serializer.data
 
 
 CartActions = (
     ('ADD', 'ADD'),
     ('REMOVE', 'REMOVE'),
 )
+
 
 
 class CartActionSerializer(serializers.Serializer):
@@ -64,3 +75,4 @@ class CartActionSerializer(serializers.Serializer):
 
 class OrderStateSerializer(serializers.Serializer):
     order_state = serializers.ChoiceField(choices=OrderState)
+
