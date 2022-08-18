@@ -4,7 +4,7 @@
 
 The goal of this project is to provide minimalistic django project template that everyone can use, which _just works_ out of the box and has the basic setup you can expand on. 
 
-Template is written with django 1.11 and python 3 in mind.
+Template is written with django 4 and python 3 in mind.
 
 vIEW DOCS https://documenter.getpostman.com/view/11282359/UzXPwwFe
 
